@@ -1,0 +1,6 @@
+*.db
+testExp
+a.out
+*.[oa]
+*~
+*.swp
