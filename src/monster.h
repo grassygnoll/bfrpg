@@ -9,6 +9,7 @@
 #define MAX_NBR_ATTACKS        3
 #define NBR_MOVE_TYPES         3
 #define NBR_APPEARING_TYPES    3
+#define MAX_LEN                30
 
 struct monsterAC {
         int Armored ;
@@ -21,13 +22,13 @@ struct monsterHD {
         int NbrDice ;
         int DieType ;
         int BonusHP ;
-        int SpecialAbilityBonus ;
+        int SpecialAbilityBonus ;   //Possible values of 0,1,2
         int AttackBonus ;
 } ;
 
 struct monsterAttacks {
         int Nbr ;
-        char* Type ;
+        char Type[MAX_LEN] ;
 } ;
 
 struct monsterDmg {
@@ -36,24 +37,24 @@ struct monsterDmg {
 } ;
 
 struct monsterMove {
-        char* Type ;
+        char Type[MAX_LEN] ;
         int Distance ;
         int TurningDistance ;
 } ;
 
 struct monsterNbrAppearing {
-        char* Type ;
+        char Type[MAX_LEN] ;
         int NbrDice ;
         int DieType ;
 } ;
 
 struct monsterSaveAs {
-        char* Class ;
+        char Class[MAX_LEN] ;
         int Level ;
 } ;
 
 typedef struct monster {
-        char* Name ;
+        char Name[MAX_LEN] ;
         struct monsterAC AC ;
         struct monsterHD HitDice ;
         struct monsterAttacks NbrAttacks[MAX_NBR_ATTACKS] ;
@@ -62,11 +63,12 @@ typedef struct monster {
         int morale ;
         struct monsterNbrAppearing NbrAppearing[NBR_APPEARING_TYPES] ;
         struct monsterSaveAs SaveAs ;
-        char* TreasureType ;
+        char TreasureType[MAX_LEN] ;
         int Exp ;
 } Monster ;
 
 
 // Functions
 void init(Monster*) ;
-
+void manualMonsterEntry(Monster*) ;
+int WriteMonster( FILE*, Monster* ) ;

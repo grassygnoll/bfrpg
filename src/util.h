@@ -8,5 +8,6 @@
 
 // Function declarations
 FILE* openDBtoWrite( const char* ) ;
-int WriteMonster( FILE*, Monster* ) ;
 int closeDB( FILE* ) ;
+char* chomp(char*) ;
+char getAnswer() ;
