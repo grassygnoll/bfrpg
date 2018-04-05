@@ -13,6 +13,7 @@
 #include <string.h>
 #include "monster.h"
 #include "util.h"
+#include "exp.h"
 
 /*****************************************************************************/
 /* openDBtoWrite() - accepts filename and returns opened file handle         */
@@ -111,10 +112,15 @@ char* chomp(char* inStr) {
 char getAnswer() {
   char a, c ;
 
-  a = getchar() ;
-  while( ((c = getchar()) != '\n') && (c != EOF) ) { }
+  a = '\n' ;
+  while( ((c = getchar()) != '\n') && (c != EOF) ) {
+    a = c ;
+  }
 
-  return a ;
+  if( a == '\n' )
+    a = 'N' ;
+
+  return toupper(a) ;
 }
 
 /***********************************************************************/
@@ -122,7 +128,10 @@ char getAnswer() {
 /***********************************************************************/
 void manualMonsterEntry(Monster* m) {
   char buf[MAX_LEN] ;
+  char DefaultTreasure[] = "None" ;
   char answer ;
+  char* tmp ;
+  int i_tmp, looper ;
 
   // Initialize our monster
   init(m) ;
@@ -136,17 +145,116 @@ void manualMonsterEntry(Monster* m) {
   m->AC.Armored = atoi(chomp(fgets(buf, MAX_LEN, stdin))) ;
   printf("Is UnArmored AC different than Armored? [Y/N]: ") ;
   answer = getAnswer() ;
-  if( (answer == 'Y') || (answer == 'y') ) {
+  if( answer == 'Y' ) {
     printf("UnArmored AC: ") ;
     m->AC.UnArmored = atoi(chomp(fgets(buf, MAX_LEN, stdin))) ;
   } else
     m->AC.UnArmored = m->AC.Armored ;
   printf("Hit by Silver Only? [Y/N]: ") ;
   answer = getAnswer() ;
-  if( answer == 'Y' || answer == 'y' )
+  if( answer == 'Y' )
     m->AC.HitBySilver = 'Y' ;
   printf("Hit by Magical Only? [Y/N]: ") ;
   answer = getAnswer() ;
-  if( answer == 'Y' || answer == 'y' )
+  if( answer == 'Y' )
     m->AC.HitByMagical = 'Y' ;
+
+  // Grab HD info
+  printf("Monster's hit die? [XdY format (ex. 1d8)]: ") ;
+  tmp = strtok(chomp(fgets(buf, MAX_LEN, stdin)), "d" ) ;
+  if(tmp != NULL)
+    m->HitDice.NbrDice = atoi(tmp) ;
+  tmp = strtok(NULL, "d") ;
+  if(tmp != NULL)
+    m->HitDice.DieType = atoi(tmp) ;
+  printf("Additional bonus hit points? (default = 0): ") ;
+  m->HitDice.BonusHP = atoi(chomp(fgets(buf, MAX_LEN, stdin))) ;
+  printf("Special Ability Bonus(es)? (range is 0-2, default = 0): ") ;
+  i_tmp = atoi(chomp(fgets(buf, MAX_LEN, stdin))) ;
+  if( i_tmp >= 0 && i_tmp < 3 )
+    m->HitDice.SpecialAbilityBonus = i_tmp ;
+  printf("Attack Bonus (default = Number of HD): ") ;
+  i_tmp = atoi(chomp(fgets(buf, MAX_LEN, stdin))) ;
+  if( i_tmp == 0 )
+    m->HitDice.AttackBonus = m->HitDice.NbrDice ;
+  else
+    m->HitDice.AttackBonus = i_tmp ;
+
+  // Grab type(s) of attacks (max = 3) and damage associated with each attack
+  printf("How many attacks does this monster have? (Max = 3): ") ;
+  i_tmp = atoi(chomp(fgets(buf, MAX_LEN, stdin))) ;
+  looper = i_tmp - 1 ;
+  if( i_tmp > 0 && i_tmp <= 3 ) {
+    for(int i = 0; i <= looper; i++) {
+      printf("Attack type: ") ;
+      chomp(fgets(m->NbrAttacks[i].Type, MAX_LEN, stdin)) ;
+      printf("Number of attacks of this type: ") ;
+      m->NbrAttacks[i].Nbr = atoi(chomp(fgets(buf, MAX_LEN, stdin))) ;
+      printf("Damage of this attack type? [XdY format (ex. 3d6)]: ") ;
+      tmp = strtok(chomp(fgets(buf, MAX_LEN, stdin)), "d" ) ;
+      if(tmp != NULL)
+        m->Dmg[i].NbrDice = atoi(tmp) ;
+      tmp = strtok(NULL, "d") ;
+      if(tmp != NULL)
+        m->Dmg[i].DieType = atoi(tmp) ;
+    }
+  }
+
+  // Grab movement type(s)
+  printf("How many types of movement can this monster use? (Max = 3): ") ;
+  i_tmp = atoi(chomp(fgets(buf, MAX_LEN, stdin))) ;
+  looper = i_tmp - 1 ;
+  if( i_tmp > 0 && i_tmp <= 3) {
+    for(int i = 0; i <= looper; i++) {
+      printf("Movement type (ex. Walk, Fly, etc.): ") ;
+      chomp(fgets(m->Movement[i].Type, MAX_LEN, stdin)) ;
+      printf("Distance value in feet (integer value; Default = 30): ") ;
+      if( (i_tmp = atoi(chomp(fgets(buf, MAX_LEN, stdin)))) > 0 )
+        m->Movement[i].Distance = i_tmp ;
+      printf("Turning radius in feet (integer value; Default = 5): ") ;
+      if( (i_tmp = atoi(chomp(fgets(buf, MAX_LEN, stdin)))) > 0 )
+        m->Movement[i].TurningDistance = i_tmp ;
+    }
+  }
+
+  // Grab Number Appearing information
+  printf("How many groups for numbers appearing? ") ;
+  printf("(Ex. 1d6 underground, 2d6 lair, etc.; Max = 3): ") ;
+  i_tmp = atoi(chomp(fgets(buf, MAX_LEN, stdin))) ;
+  looper = i_tmp - 1 ;
+  if( i_tmp > 0 && i_tmp <= 3) {
+    for(int i = 0; i <= looper; i++) {
+      printf("Group Type: ") ;
+      chomp(fgets(m->NbrAppearing[i].Type, MAX_LEN, stdin)) ;
+      printf("Number appearing for this group type? [XdY format (ex. 1d6)]: ") ;
+      tmp = strtok(chomp(fgets(buf, MAX_LEN, stdin)), "d" ) ;
+      if(tmp != NULL)
+        m->NbrAppearing[i].NbrDice = atoi(tmp) ;
+      tmp = strtok(NULL, "d") ;
+      if(tmp != NULL)
+        m->NbrAppearing[i].DieType = atoi(tmp) ;
+    }
+  }
+
+  // Grab SaveAs information
+  printf("Save As What Class? ") ;
+  chomp(fgets(m->SaveAs.Class, MAX_LEN, stdin)) ;
+  printf("Save As What Level? ") ;
+  m->SaveAs.Level = atoi(chomp(fgets(buf, MAX_LEN, stdin))) ;
+
+  // Grab morale
+  printf("Morale value (integer value): ") ;
+  m->morale = atoi(chomp(fgets(buf, MAX_LEN, stdin))) ;
+
+  // Grab Treasure Type info (if any)
+  printf("Any treasure type information for this monster? [Y/N]: ") ;
+  answer = getAnswer() ;
+  if( answer == 'Y' ) {
+    printf("Treasure type: ") ;
+    chomp(fgets(m->TreasureType, MAX_LEN, stdin)) ;
+  } else
+    strncpy(m->TreasureType, DefaultTreasure, MAX_LEN) ;
+
+  // Last piece - calc XP and populate the structure value
+  m->Exp = getExperience(m->HitDice.NbrDice, m->HitDice.SpecialAbilityBonus) ;
 }

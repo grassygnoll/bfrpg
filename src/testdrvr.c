@@ -10,9 +10,10 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "monster.h"
+#include "exp.h"
 
 /* External functions */
-int getExperience(int, int) ;
+//int getExperience(int, int) ;
 
 /* Main testing function */
 int main(int argc, char** argv) {
@@ -47,35 +48,12 @@ int main(int argc, char** argv) {
 
           printf("Add another monster? [Y/N]: ") ;
           another = getAnswer() ;
-          //another = getchar() ;
-
-          // Read anything else in the buffer up to (and including '\n')
-          //while( ((c = getchar()) != '\n') && (c != EOF) ) { }
         } while( (another != 'n') && (another != 'N') ) ;
 
         // Close output text file
         closeDB( out ) ;
 
-        // Update structure
-        /*
-        init(&aMonster) ;
-
-        aMonster.Name = "Bee, Giant" ;
-        aMonster.AC.Armored = 13 ;
-        aMonster.HitDice.NbrDice = 1 ;
-        aMonster.HitDice.DieType = 4 ;
-        aMonster.HitDice.SpecialAbilityBonus = 1 ;
-        aMonster.NbrAttacks[0].Nbr = 1 ;
-        //aMonster.NbrAttacks[0].Type = "sting" ;
-        //aMonster.Movement[0].Type = "Walk" ;
-        aMonster.Movement[0].Distance = 10 ;
-        //aMonster.Movement[1].Type = "Fly" ;
-        aMonster.Movement[1].Distance = 50 ;
-        aMonster.morale = 9 ;
-        aMonster.Exp = getExperience(0, 1) ;  // Because HD = 1d4 & one special ability bonus
-        */
-
-        // Gather input from user:
+        // TODO: Move to separate function
         printf("Enter level of monster: ") ;
         scanf("%i", &level) ;
         printf("Any special bonuses? [Y/N]: ");
