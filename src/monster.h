@@ -72,3 +72,5 @@ typedef struct monster {
 void init(Monster*) ;
 void manualMonsterEntry(Monster*) ;
 int WriteMonster( FILE*, Monster* ) ;
+void StoreMonster( FILE*, Monster* ) ;
+void PrintMonster( Monster* ) ;

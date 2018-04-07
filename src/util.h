@@ -7,7 +7,8 @@
 /*****************************************************************************/
 
 // Function declarations
-FILE* openDBtoWrite( const char* ) ;
+FILE* openDBtoWrite( const char*, const char* ) ;
 int closeDB( FILE* ) ;
 char* chomp(char*) ;
 char getAnswer() ;
+void expQuery() ;

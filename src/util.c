@@ -16,10 +16,11 @@
 #include "exp.h"
 
 /*****************************************************************************/
-/* openDBtoWrite() - accepts filename and returns opened file handle         */
+/* openDBtoWrite() - accepts filename and mode to open in                    */
+/*                   returns opened file handle                              */
 /*****************************************************************************/
-FILE* openDBtoWrite( const char* Name ) {
-        return fopen( Name, "a" ) ;
+FILE* openDBtoWrite( const char* Name, const char* Mode ) {
+        return fopen( Name, Mode ) ;
 }
 
 /*****************************************************************************/
@@ -46,6 +47,13 @@ int WriteMonster( FILE* db, Monster* m ) {
                         m->Exp ) ;
 
         return 0 ;
+}
+
+/**********************************************************************/
+/* StoreMonster() - Accepts file handle and pointer to monster object */
+/**********************************************************************/
+void StoreMonster( FILE* db, Monster* m ) {
+  fwrite(m, sizeof(Monster), 1, db) ;
 }
 
 /*****************************************************************************/
@@ -132,6 +140,11 @@ void manualMonsterEntry(Monster* m) {
   char answer ;
   char* tmp ;
   int i_tmp, looper ;
+
+  // Print section header/information to screen
+  printf("=============================================================\n") ;
+  printf("           Manual Monster Data Entry Section\n" ) ;
+  printf("=============================================================\n") ;
 
   // Initialize our monster
   init(m) ;
@@ -257,4 +270,117 @@ void manualMonsterEntry(Monster* m) {
 
   // Last piece - calc XP and populate the structure value
   m->Exp = getExperience(m->HitDice.NbrDice, m->HitDice.SpecialAbilityBonus) ;
+}
+
+/************************************************************************/
+/* expQuery() - prompts user for input and prints calculated experience */
+/************************************************************************/
+void expQuery() {
+  char buf[MAX_LEN] ;
+  int level = 0, specBonusCnt = 0, nbrKilled = 0, totalEXP = 0 ;
+  char answer ;
+
+  // Request needed input from user
+  printf("=============================================================\n") ;
+  printf("              Monster Experience Point Query\n" ) ;
+  printf("=============================================================\n") ;
+  printf("Enter level of monster: ") ;
+  level = atoi(chomp(fgets(buf, MAX_LEN, stdin))) ;
+  printf("Any special bonuses? [Y/N]: ");
+  answer = getAnswer() ;
+  if( answer == 'Y' ) {
+    printf("Enter total special bonus count: ") ;
+    specBonusCnt = atoi(chomp(fgets(buf, MAX_LEN, stdin))) ;
+  }
+  printf("Enter total of this monster killed: ") ;
+  nbrKilled = atoi(chomp(fgets(buf, MAX_LEN, stdin))) ;
+
+  // Calc experience and report it:
+  totalEXP = nbrKilled * getExperience(level, specBonusCnt) ;
+  printf("\nTotal Experience Award: %d\n", totalEXP) ;
+}
+
+/*************************************************************/
+/* PrintMonster() - Accepts a Monster and prints it "pretty" */
+/*************************************************************/
+void PrintMonster(Monster* m) {
+  //print header and AC info
+  printf("=============================================================\n") ;
+  printf("                   Monster: %s\n", m->Name ) ;
+  printf("=============================================================\n") ;
+  printf("Armor Class:    \t%d", m->AC.Armored) ;
+  if( m->AC.Armored != m->AC.UnArmored )
+    printf(" (Unarmored: %d)", m->AC.UnArmored) ;
+  if( m->AC.HitBySilver == 'Y' )
+    printf("~") ;
+  if( m->AC.HitByMagical == 'Y' )
+    printf("^") ;
+  printf("\n") ;
+
+  //print Hit Dice info
+  printf("Hit Dice:       \t%d", m->HitDice.NbrDice) ;
+  if( m->HitDice.DieType != 8 )
+    printf("d%d", m->HitDice.DieType) ;
+  if( m->HitDice.BonusHP > 0 )
+    printf("+%d", m->HitDice.BonusHP) ;
+  for(int i = m->HitDice.SpecialAbilityBonus; i > 0; i--)
+    printf("*") ;
+  if( m->HitDice.AttackBonus != m->HitDice.NbrDice )
+    printf(" (+%d)", m->HitDice.AttackBonus) ;
+  printf("\n") ;
+
+  //print Attack
+  for( int i = 0; i < MAX_NBR_ATTACKS; i++) {
+    if( i == 0 )
+      printf("No. of Attacks: \t%d %s", m->NbrAttacks[i].Nbr, m->NbrAttacks[i].Type) ;
+    else if( (i > 0) && (m->NbrAttacks[i].Nbr != 0))
+      printf("/%d %s", m->NbrAttacks[i].Nbr, m->NbrAttacks[i].Type) ;
+  }
+  printf("\n") ;
+
+  //print Damage
+  for( int i = 0; i < MAX_NBR_ATTACKS; i++) {
+    if( i == 0 )
+      printf("Damage:         \t%dd%d", m->Dmg[i].NbrDice, m->Dmg[i].DieType) ;
+    else if( (i > 0) && (m->NbrAttacks[i].Nbr != 0))
+      printf("/%dd%d", m->Dmg[i].NbrDice, m->Dmg[i].DieType) ;
+  }
+  printf("\n") ;
+
+  //print Movement
+  for( int i = 0; i < NBR_MOVE_TYPES; i++ ) {
+    if( i == 0 ) {
+      if( m->Movement[i].TurningDistance != 5 )
+        printf("Movement:       \t%d' (%d')", m->Movement[i].Distance,
+               m->Movement[i].TurningDistance) ;
+      else
+        printf("Movement:       \t%d'", m->Movement[i].Distance) ;
+    } else {
+      if( m->Movement[i].Type[0] != '\0' ) {
+        if( m->Movement[i].TurningDistance != 5 )
+          printf(" / %d' (%d')", m->Movement[i].Distance, m->Movement[i].TurningDistance) ;
+        else
+          printf(" / %d'", m->Movement[i].Distance) ;
+      }
+    }
+  }
+  printf("\n") ;
+
+  //print Number appearing
+  for( int i = 0; i < NBR_APPEARING_TYPES; i++ ) {
+    if( i == 0 ) {
+      printf("No. Appearing:    \t%s %dd%d", m->NbrAppearing[i].Type,
+             m->NbrAppearing[i].NbrDice, m->NbrAppearing[i].DieType) ;
+    } else if( m->NbrAppearing[i].Type[0] != '\0' ) {
+      printf("; %s %dd%d", m->NbrAppearing[i].Type, m->NbrAppearing[i].NbrDice,
+             m->NbrAppearing[i].DieType) ;
+    }
+  }
+  printf("\n") ;
+
+  //print Save As, Morale, Treasure Type, and Experience Value
+  printf("Save As:             \t%s: %d\n", m->SaveAs.Class, m->SaveAs.Level) ;
+  printf("Morale:              \t%d\n", m->morale) ;
+  printf("Treasure Type:       \t%s\n", m->TreasureType) ;
+  printf("XP:                  \t%d\n\n", m->Exp) ;
 }
