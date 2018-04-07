@@ -34,6 +34,7 @@ struct monsterAttacks {
 struct monsterDmg {
         int NbrDice ;
         int DieType ;
+        int Adds ;
 } ;
 
 struct monsterMove {
@@ -46,6 +47,7 @@ struct monsterNbrAppearing {
         char Type[MAX_LEN] ;
         int NbrDice ;
         int DieType ;
+        int Adds ;
 } ;
 
 struct monsterSaveAs {

@@ -35,14 +35,15 @@ int WriteMonster( FILE* db, Monster* m ) {
         for(int i = 0; i < MAX_NBR_ATTACKS; i++)
             fprintf( db, "%i|%s|", m->NbrAttacks[i].Nbr, m->NbrAttacks[i].Type ) ;
         for(int i = 0; i < MAX_NBR_ATTACKS; i++)
-            fprintf( db, "%i|%i|", m->Dmg[i].NbrDice, m->Dmg[i].DieType ) ;
+            fprintf( db, "%i|%i|%i|", m->Dmg[i].NbrDice, m->Dmg[i].DieType,
+                        m->Dmg[i].Adds ) ;
         for(int i = 0; i < NBR_MOVE_TYPES; i++)
             fprintf( db, "%s|%i|%i|", m->Movement[i].Type, m->Movement[i].Distance,
                             m->Movement[i].TurningDistance ) ;
         fprintf( db, "%i|", m->morale ) ;
         for(int i = 0; i < NBR_APPEARING_TYPES; i++)
-            fprintf( db, "%s|%i|%i|", m->NbrAppearing[i].Type, m->NbrAppearing[i].NbrDice,
-                            m->NbrAppearing[i].DieType ) ;
+            fprintf( db, "%s|%i|%i|%i|", m->NbrAppearing[i].Type, m->NbrAppearing[i].NbrDice,
+                            m->NbrAppearing[i].DieType, m->NbrAppearing[i].Adds ) ;
         fprintf( db, "%s|%i|%s|%i\n", m->SaveAs.Class, m->SaveAs.Level, m->TreasureType,
                         m->Exp ) ;
 
@@ -82,6 +83,7 @@ void init(Monster* Mon) {
             Mon->NbrAttacks[i].Type[0] = '\0' ;
             Mon->Dmg[i].NbrDice = 0 ;
             Mon->Dmg[i].DieType = 0 ;
+            Mon->Dmg[i].Adds = 0 ;
         }
         for( int i = 0; i < NBR_MOVE_TYPES; i++ ) {
             Mon->Movement[i].Type[0] = '\0' ;
@@ -93,6 +95,7 @@ void init(Monster* Mon) {
             Mon->NbrAppearing[i].Type[0] = '\0' ;
             Mon->NbrAppearing[i].NbrDice = 0 ;
             Mon->NbrAppearing[i].DieType = 0 ;
+            Mon->NbrAppearing[i].Adds = 0 ;
         }
         Mon->SaveAs.Class[0] = '\0' ;
         Mon->SaveAs.Level = 0 ;
@@ -210,6 +213,11 @@ void manualMonsterEntry(Monster* m) {
       tmp = strtok(NULL, "d") ;
       if(tmp != NULL)
         m->Dmg[i].DieType = atoi(tmp) ;
+      
+      // TODO: - got to be a better way to snag this:
+      printf( "Bonus to damage for this attack? (Default = 0): " ) ;
+      if( (i_tmp = atoi(chomp(fgets(buf, MAX_LEN, stdin)))) > 0 )
+          m->Dmg[i].Adds = i_tmp ;
     }
   }
 
@@ -246,6 +254,11 @@ void manualMonsterEntry(Monster* m) {
       tmp = strtok(NULL, "d") ;
       if(tmp != NULL)
         m->NbrAppearing[i].DieType = atoi(tmp) ;
+
+      // TODO: - got to be a better way to snag this:
+      printf( "Bonus to number appearing for this group type? (Default = 0): " ) ;
+      if( (i_tmp = atoi(chomp(fgets(buf, MAX_LEN, stdin)))) > 0 )
+          m->NbrAppearing[i].Adds = i_tmp ;
     }
   }
 
@@ -340,10 +353,13 @@ void PrintMonster(Monster* m) {
 
   //print Damage
   for( int i = 0; i < MAX_NBR_ATTACKS; i++) {
-    if( i == 0 )
+    if( i == 0 ) 
       printf("Damage:         \t%dd%d", m->Dmg[i].NbrDice, m->Dmg[i].DieType) ;
     else if( (i > 0) && (m->NbrAttacks[i].Nbr != 0))
       printf("/%dd%d", m->Dmg[i].NbrDice, m->Dmg[i].DieType) ;
+    
+    if( m->Dmg[i].Adds > 0 )
+        printf( "+%d", m->Dmg[i].Adds ) ;
   }
   printf("\n") ;
 
@@ -375,6 +391,9 @@ void PrintMonster(Monster* m) {
       printf("; %s %dd%d", m->NbrAppearing[i].Type, m->NbrAppearing[i].NbrDice,
              m->NbrAppearing[i].DieType) ;
     }
+    
+    if( m->NbrAppearing[i].Adds > 0 )
+        printf( "+%d", m->NbrAppearing[i].Adds ) ;
   }
   printf("\n") ;
 
